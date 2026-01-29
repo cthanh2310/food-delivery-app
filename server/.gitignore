@@ -42,9 +42,9 @@ temp/
 # Docker
 docker-compose.override.yml
 
-# Database
+!prisma/migrations/**/*.sql
 *.sql
 *.dump
+*.backup
 backup/
-
-/src/generated/prisma
+data/

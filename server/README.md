@@ -11,6 +11,8 @@ A RESTful API built with Express and TypeScript for a food delivery application.
 
 ### Installation
 
+> 📖 **New to this project?** Check out our [detailed setup guide](./SETUP.md) for step-by-step instructions.
+
 1. Install dependencies:
 
 ```bash
@@ -84,14 +86,67 @@ be/
 | `yarn db:seed`     | `ts-node prisma/seed.ts`       | Populate database with sample data                           |
 | `yarn db:reset`    | `prisma migrate reset --force` | ⚠️ Drop all data and re-apply migrations                     |
 
-#### For New Developers (after cloning):
+#### 🔄 Database Setup for New Developers
 
+After cloning the repository, follow these steps:
+
+**Quick Setup (Recommended):**
 ```bash
-docker-compose up -d              # Start PostgreSQL
-npx prisma migrate deploy         # Apply existing migrations
-npx prisma generate               # Generate TypeScript types
-yarn db:seed                      # Add sample data (optional)
+npm run setup
 ```
+
+**Manual Setup:**
+
+1. **Start the database:**
+   ```bash
+   docker compose up -d
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+3. **Set up environment variables:**
+   ```bash
+   cp .env.example .env
+   # Edit .env with your configuration if needed
+   ```
+
+4. **Apply migrations:**
+   
+   **For Development Environment:**
+   ```bash
+   npm run db:migrate
+   # or: npx prisma migrate dev
+   ```
+   This will:
+   - Apply all pending migrations
+   - Generate Prisma Client automatically
+   - Create the database if it doesn't exist
+   
+   **For Production/Staging Environment:**
+   ```bash
+   npx prisma migrate deploy
+   ```
+   This will:
+   - Only apply migrations (no schema changes allowed)
+   - Not generate Prisma Client (run `npm run db:generate` separately)
+   - Fail if database is out of sync
+
+5. **Seed the database (optional):**
+   ```bash
+   npm run db:seed
+   ```
+
+#### 🔍 Understanding Migration Commands
+
+| Command | When to Use | What It Does |
+|---------|-------------|--------------|
+| `npm run db:migrate` | **Development** - After changing schema | Creates new migration + applies it + generates client |
+| `npx prisma migrate deploy` | **Production/CI** - Deploying to server | Only applies existing migrations (no new migrations) |
+| `npm run db:generate` | After `npm install` or schema changes | Generates TypeScript types for Prisma Client |
+| `npm run db:reset` | Development - Start fresh | ⚠️ Drops DB, re-applies all migrations, runs seed |
 
 ## 📝 API Endpoints
 
