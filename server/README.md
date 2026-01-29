@@ -74,6 +74,25 @@ be/
 - `npm run lint` - Run ESLint
 - `npm run lint:fix` - Fix ESLint errors
 
+### Database Scripts (Prisma)
+
+| Script             | Command                        | Description                                                  |
+| ------------------ | ------------------------------ | ------------------------------------------------------------ |
+| `yarn db:migrate`  | `prisma migrate dev`           | Create new migration after schema changes (development only) |
+| `yarn db:generate` | `prisma generate`              | Generate Prisma Client types (run after `yarn install`)      |
+| `yarn db:studio`   | `prisma studio`                | Open visual database editor in browser                       |
+| `yarn db:seed`     | `ts-node prisma/seed.ts`       | Populate database with sample data                           |
+| `yarn db:reset`    | `prisma migrate reset --force` | ⚠️ Drop all data and re-apply migrations                     |
+
+#### For New Developers (after cloning):
+
+```bash
+docker-compose up -d              # Start PostgreSQL
+npx prisma migrate deploy         # Apply existing migrations
+npx prisma generate               # Generate TypeScript types
+yarn db:seed                      # Add sample data (optional)
+```
+
 ## 📝 API Endpoints
 
 ### Health Check
