@@ -1,73 +1,108 @@
-# React + TypeScript + Vite
+# Food Delivery App - Client
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern React application for food delivery, built with best practices and a scalable architecture.
 
-Currently, two official plugins are available:
+## Tech Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **React 19** - Latest React with concurrent features
+- **React Router v6** - Client-side routing with nested layouts
+- **TanStack Query (React Query)** - Server state management, caching, and synchronization
+- **Zustand** - Lightweight client state management
+- **React Hook Form + Zod** - Type-safe form handling with validation
+- **Tailwind CSS v4** - Utility-first CSS framework
+- **TypeScript** - Type safety throughout the codebase
+- **Vite** - Fast development and optimized builds
 
-## React Compiler
+## Getting Started
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Prerequisites
 
-## Expanding the ESLint configuration
+- Node.js 18+
+- npm or yarn
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Installation
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+```bash
+# Install dependencies
+npm install
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+# Copy environment variables
+cp .env.example .env
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# Start development server
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Available Scripts
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+| Command           | Description              |
+| ----------------- | ------------------------ |
+| `npm run dev`     | Start development server |
+| `npm run build`   | Build for production     |
+| `npm run preview` | Preview production build |
+| `npm run lint`    | Run ESLint               |
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Project Structure
+
 ```
+src/
+├── components/         # Reusable UI components
+│   └── layout/         # Layout components (Header, Footer)
+├── hooks/              # Custom React hooks
+├── layouts/            # Page layouts
+├── lib/                # Utilities and configurations
+│   ├── api-client.ts   # API client wrapper
+│   ├── query-client.ts # TanStack Query configuration
+│   └── validations.ts  # Zod schemas for form validation
+├── pages/              # Route pages
+│   └── auth/           # Authentication pages
+├── router/             # React Router configuration
+├── stores/             # Zustand stores
+│   ├── app.store.ts    # Global app state
+│   └── cart.store.ts   # Shopping cart state
+├── types/              # TypeScript type definitions
+├── App.tsx             # App entry with providers
+└── main.tsx            # React entry point
+```
+
+## Architecture Highlights
+
+### State Management
+
+- **Zustand** for client state (UI state, cart, authentication status)
+- **TanStack Query** for server state (API data, caching, refetching)
+
+### Form Handling
+
+- **React Hook Form** for form state management
+- **Zod** schemas for runtime validation
+- **@hookform/resolvers** for integration
+
+### Routing
+
+- **React Router v6** with nested routes
+- Layout-based routing with `Outlet`
+- Separate layouts for main app and authentication
+
+### Styling
+
+- **Tailwind CSS v4** with CSS variables for theming
+- Custom dark mode support
+- Modern design with gradients and animations
+
+## Environment Variables
+
+| Variable            | Description     | Default                     |
+| ------------------- | --------------- | --------------------------- |
+| `VITE_API_BASE_URL` | Backend API URL | `http://localhost:3000/api` |
+
+## Best Practices Implemented
+
+1. **Barrel exports** - Clean imports with index.ts files
+2. **Path aliases** - Use `@/` for src directory
+3. **Type safety** - Full TypeScript coverage
+4. **Error handling** - Custom ApiError class
+5. **Devtools** - React Query Devtools in development
+6. **Persistence** - Cart and preferences stored in localStorage
+7. **Responsive design** - Mobile-first approach
+8. **Accessibility** - Focus states and semantic HTML
