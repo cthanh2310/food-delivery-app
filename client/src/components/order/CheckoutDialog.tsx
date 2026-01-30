@@ -77,7 +77,9 @@ export function CheckoutDialog({ onSuccess }: CheckoutDialogProps) {
                     className="grid gap-4 py-4"
                 >
                     <div className="grid gap-2">
-                        <Label htmlFor="name">Name</Label>
+                        <Label htmlFor="name">
+                            Name <span className="text-red-500">*</span>
+                        </Label>
                         <Input
                             id="name"
                             {...register("customerName", {
@@ -91,7 +93,9 @@ export function CheckoutDialog({ onSuccess }: CheckoutDialogProps) {
                         )}
                     </div>
                     <div className="grid gap-2">
-                        <Label htmlFor="phone">Phone</Label>
+                        <Label htmlFor="phone">
+                            Phone <span className="text-red-500">*</span>
+                        </Label>
                         <Input
                             id="phone"
                             {...register("customerPhone", {
@@ -105,7 +109,9 @@ export function CheckoutDialog({ onSuccess }: CheckoutDialogProps) {
                         )}
                     </div>
                     <div className="grid gap-2">
-                        <Label htmlFor="address">Address</Label>
+                        <Label htmlFor="address">
+                            Address <span className="text-red-500">*</span>
+                        </Label>
                         <Textarea
                             id="address"
                             {...register("deliveryAddress", {
