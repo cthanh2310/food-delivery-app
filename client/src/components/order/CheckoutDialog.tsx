@@ -48,7 +48,10 @@ export function CheckoutDialog({ onSuccess }: CheckoutDialogProps) {
                 setOpen(false);
                 reset();
                 onSuccess?.();
-                if (data?.data?.uuid) {
+
+                if (data?.checkoutUrl) {
+                    window.location.href = data.checkoutUrl;
+                } else if (data?.data?.uuid) {
                     navigate(`/orders/${data.data.uuid}`);
                 }
             },

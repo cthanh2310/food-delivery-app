@@ -3,6 +3,7 @@ import menuRoutes from "./menu.routes";
 import cartRoutes from "./cart.routes";
 import ordersRoutes from "./orders.routes";
 import categoriesRoutes from "./categories.routes";
+import paymentRoutes from "./payment.routes";
 
 const router = Router();
 
@@ -44,18 +45,18 @@ const router = Router();
  *                   type: string
  */
 router.get("/health", async (_req: Request, res: Response) => {
-  try {
-    res.json({
-      status: "ok",
-      timestamp: new Date().toISOString(),
-    });
-  } catch (error) {
-    res.status(500).json({
-      status: "error",
-      timestamp: new Date().toISOString(),
-      error: error instanceof Error ? error.message : "Unknown error",
-    });
-  }
+    try {
+        res.json({
+            status: "ok",
+            timestamp: new Date().toISOString(),
+        });
+    } catch (error) {
+        res.status(500).json({
+            status: "error",
+            timestamp: new Date().toISOString(),
+            error: error instanceof Error ? error.message : "Unknown error",
+        });
+    }
 });
 
 // Mount route modules
@@ -63,5 +64,6 @@ router.use("/menu", menuRoutes);
 router.use("/categories", categoriesRoutes);
 router.use("/cart", cartRoutes);
 router.use("/orders", ordersRoutes);
+router.use("/payment", paymentRoutes);
 
 export default router;

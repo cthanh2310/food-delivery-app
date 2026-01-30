@@ -30,6 +30,7 @@
     "author": "",
     "license": "ISC",
     "dependencies": {
+        "@payos/node": "^2.0.4",
         "@prisma/client": "5.22.0",
         "cors": "^2.8.5",
         "dotenv": "^16.3.1",

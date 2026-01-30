@@ -101,6 +101,7 @@ export interface ApiResponse<T> {
     data: T;
     error?: string;
     message?: string;
+    checkoutUrl?: string;
 }
 
 export interface PaginatedResponse<T> {
