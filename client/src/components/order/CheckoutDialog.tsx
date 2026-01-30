@@ -15,6 +15,7 @@ import { useCreateOrder } from "@/hooks/use-orders";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 interface CheckoutFormValues {
@@ -38,14 +39,18 @@ export function CheckoutDialog({ onSuccess }: CheckoutDialogProps) {
         reset,
     } = useForm<CheckoutFormValues>();
     const createOrder = useCreateOrder();
+    const navigate = useNavigate();
 
     const onSubmit = (data: CheckoutFormValues) => {
         createOrder.mutate(data, {
-            onSuccess: () => {
+            onSuccess: (data) => {
                 toast.success("Order placed successfully!");
                 setOpen(false);
                 reset();
                 onSuccess?.();
+                if (data?.data?.uuid) {
+                    navigate(`/orders/${data.data.uuid}`);
+                }
             },
             onError: (error) => {
                 toast.error(error.message || "Failed to place order");

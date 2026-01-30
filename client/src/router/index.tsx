@@ -7,6 +7,8 @@ import { RootLayout } from "@/layouts/RootLayout";
 import { HomePage } from "@/pages/Home";
 import { NotFoundPage } from "@/pages/NotFound";
 import { MenuPage } from "@/pages/Menu";
+import { OrdersPage } from "@/pages/Orders";
+import { OrderDetailPage } from "@/pages/OrderDetail";
 
 export const router = createBrowserRouter([
     {
@@ -30,10 +32,14 @@ export const router = createBrowserRouter([
             //   path: 'cart',
             //   element: <CartPage />,
             // },
-            // {
-            //   path: 'orders',
-            //   element: <OrdersPage />,
-            // },
+            {
+                path: "orders",
+                element: <OrdersPage />,
+            },
+            {
+                path: "orders/:id",
+                element: <OrderDetailPage />,
+            },
         ],
     },
 ]);

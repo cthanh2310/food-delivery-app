@@ -1,10 +1,21 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { User, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { CartSheet } from "@/components/cart/CartSheet";
 
+import { cn } from "@/lib/utils";
+
 export function Header() {
+    const location = useLocation();
+
+    const isActive = (path: string) => {
+        if (path === "/") {
+            return location.pathname === "/";
+        }
+        return location.pathname.startsWith(path);
+    };
+
     return (
         <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div className="container flex h-16 items-center justify-between">
@@ -22,7 +33,12 @@ export function Header() {
                     <Link to="/">
                         <Button
                             variant="ghost"
-                            className="text-base font-medium"
+                            className={cn(
+                                "text-base font-medium",
+                                isActive("/")
+                                    ? "text-foreground"
+                                    : "text-muted-foreground",
+                            )}
                         >
                             Home
                         </Button>
@@ -30,7 +46,12 @@ export function Header() {
                     <Link to="/restaurants">
                         <Button
                             variant="ghost"
-                            className="text-base font-medium text-muted-foreground"
+                            className={cn(
+                                "text-base font-medium",
+                                isActive("/restaurants")
+                                    ? "text-foreground"
+                                    : "text-muted-foreground",
+                            )}
                         >
                             Restaurants
                         </Button>
@@ -38,7 +59,12 @@ export function Header() {
                     <Link to="/orders">
                         <Button
                             variant="ghost"
-                            className="text-base font-medium text-muted-foreground"
+                            className={cn(
+                                "text-base font-medium",
+                                isActive("/orders")
+                                    ? "text-foreground"
+                                    : "text-muted-foreground",
+                            )}
                         >
                             My Orders
                         </Button>
@@ -67,19 +93,34 @@ export function Header() {
                                 <nav className="flex flex-col gap-4 mt-8">
                                     <Link
                                         to="/"
-                                        className="text-lg font-medium"
+                                        className={cn(
+                                            "text-lg font-medium",
+                                            isActive("/")
+                                                ? "text-foreground"
+                                                : "text-muted-foreground",
+                                        )}
                                     >
                                         Home
                                     </Link>
                                     <Link
                                         to="/restaurants"
-                                        className="text-lg font-medium text-muted-foreground"
+                                        className={cn(
+                                            "text-lg font-medium",
+                                            isActive("/restaurants")
+                                                ? "text-foreground"
+                                                : "text-muted-foreground",
+                                        )}
                                     >
                                         Restaurants
                                     </Link>
                                     <Link
                                         to="/orders"
-                                        className="text-lg font-medium text-muted-foreground"
+                                        className={cn(
+                                            "text-lg font-medium",
+                                            isActive("/orders")
+                                                ? "text-foreground"
+                                                : "text-muted-foreground",
+                                        )}
                                     >
                                         My Orders
                                     </Link>
