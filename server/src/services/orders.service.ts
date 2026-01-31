@@ -1,5 +1,5 @@
 import { prisma } from "../config/prisma";
-import payos from "../utils/payos";
+// import payos from "../utils/payos";
 import { OrderStatus } from "@prisma/client";
 import { Decimal } from "@prisma/client/runtime/library";
 
@@ -78,8 +78,11 @@ export class OrdersService {
       where: { sessionId },
     });
 
-    // Create PayOS payment link
-    let checkoutUrl = "";
+    // Create Simulation Payment Link
+    const checkoutUrl = `${process.env.CORS_ORIGIN}/payment-simulation?orderId=${order.id}&amount=${Math.round(totalAmount)}&code=${order.uuid}`;
+
+    // PayOS logic removed for simulation
+    /*
     try {
       const paymentData = {
         orderCode: order.id,
@@ -101,6 +104,7 @@ export class OrdersService {
     } catch (error) {
       console.error("Error creating payment link:", error);
     }
+    */
 
     return { order, checkoutUrl };
   }
@@ -192,6 +196,35 @@ export class OrdersService {
         statusHistory: {
           orderBy: {
             createdAt: "desc",
+          },
+        },
+      },
+    });
+
+    return order;
+  }
+
+  static async updateOrderStatusById(
+    id: number,
+    status: OrderStatus,
+    notes?: string,
+  ) {
+    const existingOrder = await prisma.order.findUnique({
+      where: { id },
+    });
+
+    if (!existingOrder) {
+      return null;
+    }
+
+    const order = await prisma.order.update({
+      where: { id },
+      data: {
+        status,
+        statusHistory: {
+          create: {
+            status,
+            notes: notes || null,
           },
         },
       },

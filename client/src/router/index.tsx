@@ -9,6 +9,7 @@ import { NotFoundPage } from "@/pages/NotFound";
 import { MenuPage } from "@/pages/Menu";
 import { OrdersPage } from "@/pages/Orders";
 import { OrderDetailPage } from "@/pages/OrderDetail";
+import { PaymentSimulationPage } from "@/pages/PaymentSimulation";
 
 export const router = createBrowserRouter([
     {
@@ -16,6 +17,10 @@ export const router = createBrowserRouter([
         element: <RootLayout />,
         errorElement: <NotFoundPage />,
         children: [
+            {
+                path: "payment-simulation",
+                element: <PaymentSimulationPage />,
+            },
             {
                 index: true,
                 element: <HomePage />,

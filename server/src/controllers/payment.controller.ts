@@ -1,7 +1,51 @@
 import { Request, Response } from "express";
 import { PaymentService } from "../services/payment.service";
+import { OrdersService } from "../services/orders.service";
+import { OrderStatus } from "@prisma/client";
 
 export class PaymentController {
+  static async simulatePayment(req: Request, res: Response) {
+    try {
+      const { orderId, success, note } = req.body;
+
+      if (!orderId) {
+        res.status(400).json({ success: false, message: "Missing orderId" });
+        return;
+      }
+
+      if (success) {
+        const result = await PaymentService.processPayment(
+          Number(orderId),
+          0,
+          "SIMULATION",
+        );
+
+        if (!result) {
+          res.status(404).json({ success: false, message: "Order not found" });
+          return;
+        }
+
+        res.json({ success: true, message: "Payment simulated successfully" });
+      } else {
+        // Handle failed payment/cancellation
+        await OrdersService.updateOrderStatusById(
+          Number(orderId),
+          OrderStatus.CANCELLED,
+          note || "User cancelled payment simulation",
+        );
+        res.json({
+          success: true,
+          message: "Order cancelled",
+        });
+      }
+    } catch (error) {
+      console.error("Error simulating payment:", error);
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  }
   static async handleWebhook(req: Request, res: Response) {
     try {
       console.log("Received PayOS webhook:", JSON.stringify(req.body));

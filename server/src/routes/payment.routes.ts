@@ -5,6 +5,29 @@ const router = Router();
 
 /**
  * @swagger
+ * /api/payment/simulate:
+ *   post:
+ *     summary: Simulate payment webhook
+ *     tags: [Payment]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               orderId:
+ *                 type: number
+ *               success:
+ *                 type: boolean
+ *     responses:
+ *       200:
+ *         description: Simulation processed
+ */
+router.post("/simulate-webhook", PaymentController.simulatePayment);
+
+/**
+ * @swagger
  * /api/payment/webhook:
  *   post:
  *     summary: Handle PayOS payment webhook
