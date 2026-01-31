@@ -1,40 +1,7 @@
-import { Router, Request, Response } from "express";
-import { prisma } from "../config/prisma";
-import payos from "../utils/payos";
-import { OrderStatus } from "@prisma/client";
-import { Decimal } from "@prisma/client/runtime/library";
-import {
-    parsePaginationParams,
-    createPaginatedResponse,
-} from "../utils/pagination";
+import { Router } from "express";
+import { OrdersController } from "../controllers/orders.controller";
 
 const router = Router();
-
-// Helper function to get status display text
-function getStatusText(status: OrderStatus): string {
-    const statusMap: Record<OrderStatus, string> = {
-        PENDING: "Order Received",
-        CONFIRMED: "Order Confirmed",
-        PREPARING: "Preparing",
-        OUT_FOR_DELIVERY: "Out for Delivery",
-        DELIVERED: "Delivered",
-        CANCELLED: "Cancelled",
-    };
-    return statusMap[status];
-}
-
-// Helper function to get estimated time
-function getEstimatedMinutes(status: OrderStatus): number | null {
-    const estimateMap: Record<OrderStatus, number | null> = {
-        PENDING: 30,
-        CONFIRMED: 25,
-        PREPARING: 20,
-        OUT_FOR_DELIVERY: 15,
-        DELIVERED: null,
-        CANCELLED: null,
-    };
-    return estimateMap[status];
-}
 
 /**
  * @swagger
@@ -101,156 +68,7 @@ function getEstimatedMinutes(status: OrderStatus): number | null {
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.post("/", async (req: Request, res: Response) => {
-    try {
-        const {
-            sessionId,
-            customerName,
-            customerPhone,
-            deliveryAddress,
-            notes,
-        } = req.body;
-
-        // Validation
-        if (!sessionId || !customerName || !customerPhone || !deliveryAddress) {
-            res.status(400).json({
-                success: false,
-                error: "Missing required fields: sessionId, customerName, customerPhone, deliveryAddress",
-            });
-            return;
-        }
-
-        if (!customerName.trim()) {
-            res.status(400).json({
-                success: false,
-                error: "Customer name is required",
-            });
-            return;
-        }
-
-        if (!customerPhone.trim()) {
-            res.status(400).json({
-                success: false,
-                error: "Customer phone is required",
-            });
-            return;
-        }
-
-        if (!deliveryAddress.trim()) {
-            res.status(400).json({
-                success: false,
-                error: "Delivery address is required",
-            });
-            return;
-        }
-
-        // Get cart items
-        const cartItems = await prisma.cartItem.findMany({
-            where: { sessionId },
-            include: {
-                menuItem: true,
-            },
-        });
-
-        if (cartItems.length === 0) {
-            res.status(400).json({
-                success: false,
-                error: "Cannot create order with empty cart",
-            });
-            return;
-        }
-
-        // Calculate totals
-        const subtotal = cartItems.reduce((total, item) => {
-            const itemPrice = Number(item.menuItem.price);
-            return total + itemPrice * item.quantity;
-        }, 0);
-
-        const deliveryFee = 5.0; // Fixed delivery fee
-        const totalAmount = subtotal + deliveryFee;
-
-        // Create order with items and initial status history
-        const order = await prisma.order.create({
-            data: {
-                sessionId,
-                status: OrderStatus.PENDING,
-                subtotal: new Decimal(subtotal),
-                deliveryFee: new Decimal(deliveryFee),
-                totalAmount: new Decimal(totalAmount),
-                customerName,
-                customerPhone,
-                deliveryAddress,
-                notes: notes || null,
-                orderItems: {
-                    create: cartItems.map((item) => ({
-                        menuItemId: item.menuItemId,
-                        itemName: item.menuItem.name,
-                        unitPrice: item.menuItem.price,
-                        quantity: item.quantity,
-                        subtotal: new Decimal(
-                            Number(item.menuItem.price) * item.quantity,
-                        ),
-                    })),
-                },
-                statusHistory: {
-                    create: {
-                        status: OrderStatus.PENDING,
-                        notes: "Order created",
-                    },
-                },
-            },
-            include: {
-                orderItems: true,
-                statusHistory: {
-                    orderBy: {
-                        createdAt: "desc",
-                    },
-                },
-            },
-        });
-
-        // Clear cart after successful order
-        await prisma.cartItem.deleteMany({
-            where: { sessionId },
-        });
-
-        // Create PayOS payment link
-        let checkoutUrl = "";
-        try {
-            const paymentData = {
-                orderCode: order.id,
-                // Fixed amount for testing with VND currency
-                amount: 4000, // PayOS requires integer
-                // amount: Math.round(totalAmount), // PayOS requires integer
-                description: `Order #${order.id}`,
-                items: cartItems.map((item) => ({
-                    name: item.menuItem.name,
-                    quantity: item.quantity,
-                    price: Number(item.menuItem.price),
-                })),
-                cancelUrl: `${process.env.CORS_ORIGIN || "http://localhost:3001"}/orders/${order.uuid}`,
-                returnUrl: `${process.env.CORS_ORIGIN || "http://localhost:3001"}/orders/${order.uuid}`,
-            };
-
-            const paymentLink = await payos.paymentRequests.create(paymentData);
-            checkoutUrl = paymentLink.checkoutUrl;
-        } catch (error) {
-            console.error("Error creating payment link:", error);
-        }
-
-        res.status(201).json({
-            success: true,
-            data: order,
-            checkoutUrl,
-        });
-    } catch (error) {
-        console.error("Error creating order:", error);
-        res.status(500).json({
-            success: false,
-            error: error instanceof Error ? error.message : "Unknown error",
-        });
-    }
-});
+router.post("/", OrdersController.createOrder);
 
 /**
  * @swagger
@@ -294,42 +112,7 @@ router.post("/", async (req: Request, res: Response) => {
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get("/:uuid", async (req: Request, res: Response) => {
-    try {
-        const { uuid } = req.params;
-
-        const order = await prisma.order.findUnique({
-            where: { uuid },
-            include: {
-                orderItems: true,
-                statusHistory: {
-                    orderBy: {
-                        createdAt: "desc",
-                    },
-                },
-            },
-        });
-
-        if (!order) {
-            res.status(404).json({
-                success: false,
-                error: "Order not found",
-            });
-            return;
-        }
-
-        res.status(200).json({
-            success: true,
-            data: order,
-        });
-    } catch (error) {
-        console.error("Error fetching order:", error);
-        res.status(500).json({
-            success: false,
-            error: error instanceof Error ? error.message : "Unknown error",
-        });
-    }
-});
+router.get("/:uuid", OrdersController.getOrderByUuid);
 
 /**
  * @swagger
@@ -404,45 +187,7 @@ router.get("/:uuid", async (req: Request, res: Response) => {
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get("/session/:sessionId", async (req: Request, res: Response) => {
-    try {
-        const { sessionId } = req.params;
-        const { page, limit, skip } = parsePaginationParams(req.query);
-
-        // Get total count
-        const total = await prisma.order.count({
-            where: { sessionId },
-        });
-
-        // Get paginated orders
-        const orders = await prisma.order.findMany({
-            where: { sessionId },
-            include: {
-                orderItems: true,
-                statusHistory: {
-                    orderBy: {
-                        createdAt: "desc",
-                    },
-                },
-            },
-            orderBy: {
-                createdAt: "desc",
-            },
-            skip,
-            take: limit,
-        });
-
-        res.status(200).json(
-            createPaginatedResponse(orders, page, limit, total),
-        );
-    } catch (error) {
-        console.error("Error fetching orders:", error);
-        res.status(500).json({
-            success: false,
-            error: error instanceof Error ? error.message : "Unknown error",
-        });
-    }
-});
+router.get("/session/:sessionId", OrdersController.getOrdersBySession);
 
 /**
  * @swagger
@@ -502,50 +247,7 @@ router.get("/session/:sessionId", async (req: Request, res: Response) => {
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get("/:uuid/status", async (req: Request, res: Response) => {
-    try {
-        const { uuid } = req.params;
-
-        const order = await prisma.order.findUnique({
-            where: { uuid },
-            select: {
-                status: true,
-                statusHistory: {
-                    orderBy: {
-                        createdAt: "desc",
-                    },
-                },
-            },
-        });
-
-        if (!order) {
-            res.status(404).json({
-                success: false,
-                error: "Order not found",
-            });
-            return;
-        }
-
-        const statusText = getStatusText(order.status);
-        const estimatedMinutes = getEstimatedMinutes(order.status);
-
-        res.status(200).json({
-            success: true,
-            data: {
-                status: order.status,
-                statusText,
-                estimatedMinutes,
-                history: order.statusHistory,
-            },
-        });
-    } catch (error) {
-        console.error("Error fetching order status:", error);
-        res.status(500).json({
-            success: false,
-            error: error instanceof Error ? error.message : "Unknown error",
-        });
-    }
-});
+router.get("/:uuid/status", OrdersController.getOrderStatus);
 
 /**
  * @swagger
@@ -613,75 +315,6 @@ router.get("/:uuid/status", async (req: Request, res: Response) => {
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.put("/:uuid/status", async (req: Request, res: Response) => {
-    try {
-        const { uuid } = req.params;
-        const { status, notes } = req.body;
-
-        // Validate status
-        const validStatuses: OrderStatus[] = [
-            "PENDING",
-            "CONFIRMED",
-            "PREPARING",
-            "OUT_FOR_DELIVERY",
-            "DELIVERED",
-            "CANCELLED",
-        ];
-
-        if (!validStatuses.includes(status)) {
-            res.status(400).json({
-                success: false,
-                error: `Invalid status. Must be one of: ${validStatuses.join(", ")}`,
-            });
-            return;
-        }
-
-        // Check if order exists
-        const existingOrder = await prisma.order.findUnique({
-            where: { uuid },
-        });
-
-        if (!existingOrder) {
-            res.status(404).json({
-                success: false,
-                error: "Order not found",
-            });
-            return;
-        }
-
-        // Update order status and create history entry
-        const order = await prisma.order.update({
-            where: { uuid },
-            data: {
-                status,
-                statusHistory: {
-                    create: {
-                        status,
-                        notes: notes || null,
-                    },
-                },
-            },
-            include: {
-                orderItems: true,
-                statusHistory: {
-                    orderBy: {
-                        createdAt: "desc",
-                    },
-                },
-            },
-        });
-
-        res.status(200).json({
-            success: true,
-            data: order,
-        });
-    } catch (error) {
-        console.error("Error updating order status:", error);
-        res.status(500).json({
-            success: false,
-            error: error instanceof Error ? error.message : "Unknown error",
-        });
-    }
-});
+router.put("/:uuid/status", OrdersController.updateOrderStatus);
 
 export default router;

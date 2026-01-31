@@ -1,5 +1,5 @@
-import { Router, Request, Response } from "express";
-import { prisma } from "../config/prisma";
+import { Router } from "express";
+import { CategoriesController } from "../controllers/categories.controller";
 
 const router = Router();
 
@@ -32,35 +32,6 @@ const router = Router();
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get("/", async (_req: Request, res: Response) => {
-  try {
-    const categories = await prisma.category.findMany({
-      where: {
-        isActive: true,
-      },
-      include: {
-        _count: {
-          select: {
-            menuItems: true,
-          },
-        },
-      },
-      orderBy: {
-        sortOrder: "asc",
-      },
-    });
-
-    res.status(200).json({
-      success: true,
-      data: categories,
-    });
-  } catch (error) {
-    console.error("Error fetching categories:", error);
-    res.status(500).json({
-      success: false,
-      error: error instanceof Error ? error.message : "Unknown error",
-    });
-  }
-});
+router.get("/", CategoriesController.getCategories);
 
 export default router;

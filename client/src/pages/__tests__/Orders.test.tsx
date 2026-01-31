@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
-import { OrdersPage } from "./Orders";
+import { OrdersPage } from "../Orders";
 import { MemoryRouter } from "react-router-dom";
 import { OrderStatus } from "@/types/api";
 

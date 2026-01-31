@@ -1,9 +1,5 @@
-import { Router, Request, Response } from "express";
-import { prisma } from "../config/prisma";
-import {
-  parsePaginationParams,
-  createPaginatedResponse,
-} from "../utils/pagination";
+import { Router } from "express";
+import { MenuController } from "../controllers/menu.controller";
 
 const router = Router();
 
@@ -73,47 +69,7 @@ const router = Router();
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get("/", async (req: Request, res: Response) => {
-  try {
-    const { page, limit, skip } = parsePaginationParams(req.query);
-
-    // Get total count for pagination
-    const total = await prisma.menuItem.count({
-      where: {
-        isAvailable: true,
-      },
-    });
-
-    // Get paginated menu items
-    const menuItems = await prisma.menuItem.findMany({
-      where: {
-        isAvailable: true,
-      },
-      include: {
-        category: {
-          select: {
-            id: true,
-            name: true,
-            description: true,
-          },
-        },
-      },
-      orderBy: [{ category: { sortOrder: "asc" } }, { sortOrder: "asc" }],
-      skip,
-      take: limit,
-    });
-
-    res
-      .status(200)
-      .json(createPaginatedResponse(menuItems, page, limit, total));
-  } catch (error) {
-    console.error("Error fetching menu items:", error);
-    res.status(500).json({
-      success: false,
-      error: error instanceof Error ? error.message : "Unknown error",
-    });
-  }
-});
+router.get("/", MenuController.getMenuItems);
 
 /**
  * @swagger
@@ -161,51 +117,6 @@ router.get("/", async (req: Request, res: Response) => {
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get("/:id", async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const menuItemId = parseInt(id);
-
-    if (isNaN(menuItemId)) {
-      res.status(400).json({
-        success: false,
-        error: "Invalid menu item ID",
-      });
-      return;
-    }
-
-    const menuItem = await prisma.menuItem.findUnique({
-      where: { id: menuItemId },
-      include: {
-        category: {
-          select: {
-            id: true,
-            name: true,
-            description: true,
-          },
-        },
-      },
-    });
-
-    if (!menuItem) {
-      res.status(404).json({
-        success: false,
-        error: "Menu item not found",
-      });
-      return;
-    }
-
-    res.status(200).json({
-      success: true,
-      data: menuItem,
-    });
-  } catch (error) {
-    console.error("Error fetching menu item:", error);
-    res.status(500).json({
-      success: false,
-      error: error instanceof Error ? error.message : "Unknown error",
-    });
-  }
-});
+router.get("/:id", MenuController.getMenuItemById);
 
 export default router;
