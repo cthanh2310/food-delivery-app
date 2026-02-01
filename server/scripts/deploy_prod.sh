@@ -4,7 +4,7 @@ set -e
 
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-nvm use 18
+nvm use 20
 
 # Load environment variables
 if [ -f .env ]; then
@@ -19,6 +19,7 @@ export PORT=${PORT:-3001}
 # Install dependencies
 echo "Installing dependencies..."
 npm install
+npm install -g pm2
 
 echo "Building application..."
 npm run build
